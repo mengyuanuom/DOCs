@@ -80,26 +80,41 @@ Norm、Loss、Optimizer：BF16/FP32
 
 ## 5. 厂商与代表工作的对应关系
 
-| 厂商 | 代表工作/平台 | 低精度对象 | 是否真正降低训练精度 | 主要价值 |
-|---|---|---|---|---|
-| Meta | LoKA | Dense MLP、交互层 | 是，选择性 FP8 计算 | 生产级推荐 FP8 训练 |
-| Meta | Training with Low-precision Embedding Tables | Embedding 参数 | 是，FP16 存储+随机舍入 | 降训练内存、提升吞吐 |
-| Meta | Mixed-Precision Embedding Using a Cache | Embedding 参数 | 是，INT4/INT8 主表+FP Cache | 长尾 INT4 Embedding 训练 |
-| Meta | Quantized Collective Communications | All-to-All/All-Reduce | 是，4-bit 通信 | 降分布式训练网络流量 |
-| Meta | TorchRec/FBGEMM/TorchAO | Embedding、Jagged Tensor、Dense | 工程底座 | 分片、低精度 Kernel、FP8 API |
-| 华为诺亚 | ALPT | CTR Embedding | 是，INT8 低精度参数训练 | 自适应 scale、训练内存压缩 |
-| 腾讯 FiT | MPE | CTR Embedding | 否，训练保留全精度参数 | 自动搜索 0–6 bit，偏 QAT/部署压缩 |
-| Intel+CMU/UCB/UT Austin | DQRM | DLRM Embedding、梯度 | 部分，INT4 QAT+INT8 通信 | 模型和通信压缩 |
-| NVIDIA | Transformer Engine+Merlin/HugeCTR | Dense FP8/FP4、分布式 Embedding | 提供底层能力 | GPU、低精度 Kernel 和训练框架 |
-| Google | TPU FP8+SparseCore | Dense、Embedding | 提供底层能力 | Dense/Sparse 硬件协同 |
-| AMD | ROCm/Quark/FP8 | Dense FP8 | 提供底层能力 | LoKA 已验证 MI300X/MI350X |
-| AWS | Trainium2/Neuron | Dense FP8 | 提供底层能力 | FP8、随机舍入和专用通信 Core |
-| 字节跳动 | Primus | 大规模 DLRM 训练 | 未公开低精度细节 | 推荐训练系统与混合流批训练 |
-| 阿里 | RecIS | 超大规模稀疏模型 | 未公开低精度细节 | 推荐基础设施和 Embedding 管理 |
+时间口径说明：论文以首次公开的预印本或官方研究页面日期为主；会议年份另行标注。平台类项目若没有单一论文首次发布日期，则使用代表性公开年份或标注“持续迭代”。
+
+| 厂商 | 代表工作/平台 | 首次公开时间 | 正式发表/版本 | 低精度对象 | 是否真正降低训练精度 | 主要价值 |
+|---|---|---:|---|---|---|---|
+| Meta | LoKA | 2026-05-11 | ISCA 2026；2026-07-09 更新 v3 | Dense MLP、交互层 | 是，选择性 FP8 计算 | 生产级推荐 FP8 训练 |
+| Meta | Training with Low-precision Embedding Tables | 2018-12-03 | NeurIPS 2018 Systems for ML Workshop | Embedding 参数 | 是，FP16 存储+随机舍入 | 降训练内存、提升吞吐 |
+| Meta | Mixed-Precision Embedding Using a Cache | 2020-10-21 | arXiv 2020 | Embedding 参数 | 是，INT4/INT8 主表+FP Cache | 长尾 INT4 Embedding 训练 |
+| Meta | Quantized Collective Communications | 2020-08-24 | KDD 2020 | All-to-All/All-Reduce | 是，4-bit 通信 | 降分布式训练网络流量 |
+| Meta | TorchRec/FBGEMM/TorchAO | 2022 前后公开 TorchRec | 持续迭代 | Embedding、Jagged Tensor、Dense | 工程底座 | 分片、低精度 Kernel、FP8 API |
+| 华为诺亚 | ALPT | 2022-12-12 | AAAI 2023 | CTR Embedding | 是，INT8 低精度参数训练 | 自适应 scale、训练内存压缩 |
+| 腾讯 FiT | MPE | 2024-09-30 | 2024-10-17 更新 v2 | CTR Embedding | 否，训练保留全精度参数 | 自动搜索 0–6 bit，偏 QAT/部署压缩 |
+| Intel+CMU/UCB/UT Austin | DQRM | 2024-10-26 | arXiv 2024 | DLRM Embedding、梯度 | 部分，INT4 QAT+INT8 通信 | 模型和通信压缩 |
+| NVIDIA | Transformer Engine+Merlin/HugeCTR | 2022 起进入 FP8 时代 | 持续迭代；Blackwell 2024 起引入 MXFP8/NVFP4 | Dense FP8/FP4、分布式 Embedding | 提供底层能力 | GPU、低精度 Kernel 和训练框架 |
+| Google | TPU FP8+SparseCore | 多代 TPU 持续演进 | Ironwood/TPU7x 公开 FP8；TPU 8t 引入 FP4 | Dense、Embedding | 提供底层能力 | Dense/Sparse 硬件协同 |
+| AMD | ROCm/Quark/FP8 | MI300 代开始公开 FP8 能力 | 持续迭代 | Dense FP8 | 提供底层能力 | LoKA 已验证 MI300X/MI350X |
+| AWS | Trainium2/Neuron | 2024 年发布 Trainium2 | Neuron 持续迭代 | Dense FP8 | 提供底层能力 | FP8、随机舍入和专用通信 Core |
+| 字节跳动 | Primus | 2025 | USENIX ATC 2025 | 大规模 DLRM 训练 | 未公开低精度细节 | 推荐训练系统与混合流批训练 |
+| 阿里 | RecIS | 公开仓库持续迭代 | 尚无统一低精度论文口径 | 超大规模稀疏模型 | 未公开低精度细节 | 推荐基础设施和 Embedding 管理 |
+
+### 5.1 核心工作时间线
+
+```text
+2018-12  Meta：低精度 Embedding Table 训练（FP16+随机舍入）
+2020-08  Meta：DLRM 4-bit All-to-All/All-Reduce 通信量化
+2020-10  Meta：INT4/INT8 Embedding 主表+全精度热点 Cache
+2022-12  华为诺亚：ALPT 自适应 INT8 Embedding 低精度训练
+2024-09  腾讯 FiT：MPE 混合 bit-width Embedding 搜索/QAT
+2024-10  Intel+高校：DQRM INT4 QAT+INT8 Gradient 通信
+2026-05  Meta：LoKA 生产级推荐模型选择性 FP8 训练
+2026-07  Meta：LoKA v3，补充生产与多硬件验证结果
+```
 
 ## 6. Meta：公开路线最完整
 
-### 6.1 LoKA：生产推荐模型的选择性 FP8
+### 6.1 LoKA：生产推荐模型的选择性 FP8（2026-05 首次公开，2026-07 更新）
 
 LoKA 由 Meta AI 提出，并被 ISCA 2026 接收。其目标不是统一把 Linear 换成 FP8，而是建立推荐模型专用的逐算子决策框架：
 
@@ -117,7 +132,7 @@ Meta 报告的生产结果：
 
 LoKA 同时报告：直接使用通用 TorchAO FP8 配方时，代表性推荐模型可能出现约 1.3 倍变慢和最高 2.5% 相对 LogLoss 退化。因此推荐 FP8 的壁垒在于真实分布探测、模型改造和逐算子调度，而不仅是 FP8 Kernel。
 
-### 6.2 低精度 Embedding 参数训练
+### 6.2 低精度 Embedding 参数训练（2018-12）
 
 Meta 2018 年的工作将 Embedding 参数存为 FP16，SGD 更新使用 FP32 计算，并通过 stochastic rounding 写回 FP16。公开结果包括最高约 2 倍内存节省和约 1.2 倍训练加速。
 
@@ -125,7 +140,7 @@ Meta 2018 年的工作将 Embedding 参数存为 FP16，SGD 更新使用 FP32 �
 
 > Embedding 可以低精度存储，但更新计算和微小增量累积必须保留高精度路径或采用随机舍入。
 
-### 6.3 INT4/INT8 主表+全精度热点 Cache
+### 6.3 INT4/INT8 主表+全精度热点 Cache（2020-10）
 
 Mixed-Precision Embedding Using a Cache 利用推荐访问的 Zipf 分布：
 
@@ -140,7 +155,7 @@ Mixed-Precision Embedding Using a Cache 利用推荐访问的 Zipf 分布：
 - 工业模型：INT4 主表+1% FP Cache，超过 7 倍内存压缩；
 - 端到端训练最高提升约 16%，主要来自减少 Host 到 GPU 的数据搬运。
 
-### 6.4 4-bit 分布式通信
+### 6.4 4-bit 分布式通信（2020-08，KDD 2020）
 
 Meta 的 Quantized Collective Communications 针对：
 
@@ -162,7 +177,7 @@ Optimizer：FP32/BF16
 框架：TorchRec+FBGEMM+TorchAO
 ```
 
-## 7. 华为诺亚：ALPT 低精度 Embedding 训练
+## 7. 华为诺亚：ALPT 低精度 Embedding 训练（2022-12，AAAI 2023）
 
 华为诺亚方舟实验室与华中科技大学、清华大学提出 ALPT。它区别于只在前向插入 fake quant 的 QAT：Embedding 在训练期间以低精度格式保存，因此能够真正降低训练内存。
 
@@ -182,7 +197,7 @@ Optimizer：FP32/BF16
 
 竞争定位：华为的公开特色是自适应量化步长和随机舍入的真正低精度 Embedding 训练，成熟口径主要是 INT8，而非 INT4。
 
-## 8. 腾讯 FiT：MPE 自动混合 bit-width
+## 8. 腾讯 FiT：MPE 自动混合 bit-width（2024-09）
 
 MPE 由腾讯 FiT 与华中科技大学合作提出。它按照特征频率分组，在候选集合 `{0,1,2,3,4,5,6}` 中学习每组 bit-width 的概率分布，再依据容量正则项平衡 AUC 和模型大小。
 
@@ -195,7 +210,7 @@ MPE 由腾讯 FiT 与华中科技大学合作提出。它按照特征频率分�
 
 因此，MPE 属于混合精度 QAT/模型压缩，不是训练内存和训练计算都降到 INT4。其优势是为不同频率和重要性的特征自动分配精度；0 bit 实质上等价于特征裁剪。
 
-## 9. Intel 联合路线：DQRM INT4 QAT
+## 9. Intel 联合路线：DQRM INT4 QAT（2024-10）
 
 DQRM 作者来自 CMU、UC Berkeley、Intel 和 UT Austin，其中 Intel 有共同作者，并使用 Intel oneCCL 和 Intel CPU 集群等环境。
 
@@ -337,4 +352,3 @@ Trainium2 支持 FP8、随机舍入、NeuronLink 和专用通信 Core。其公�
 15. AMD ROCm, FP8 Training with Megatron-LM: <https://rocm.docs.amd.com/en/develop/how-to/rocm-for-ai/training/benchmark-docker/megatron-lm.html>
 16. ByteDance, Primus: <https://www.usenix.org/conference/atc25/presentation/shan-jixi>
 17. Alibaba, RecIS: <https://github.com/alibaba/RecIS>
-
